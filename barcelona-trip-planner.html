@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Julia · Barcelona</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   Julia · Barcelona — a hand-built trip planner
+   Palette = Gaudí "trencadís" mosaic: many jewel shards on near-black.
+   Each category owns a colour, so colour itself encodes structure.
+   ============================================================ */
+:root{
+  --bg:        #0E0E12;
+  --bg-2:      #131319;
+  --surface:   #181820;
+  --surface-2: #1F1F2A;
+  --line:      #2A2A36;
+  --line-soft: #22222C;
+  --ink:       #ECE7DD;
+  --ink-2:     #A8A39A;
+  --ink-3:     #6F6B64;
+  --gold:      #F4B740;   /* route / accents */
+  --teal:      #2DD4BF;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 18px 40px -18px rgba(0,0,0,.7);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* grid metrics (kept in sync with JS CONFIG) */
+  --slot-px: 24px;
+  --block-h: 56px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:
+    radial-gradient(1200px 700px at 12% -8%, rgba(244,183,64,.07), transparent 55%),
+    radial-gradient(1000px 620px at 100% 0%, rgba(45,212,191,.07), transparent 50%),
+    radial-gradient(900px 700px at 50% 120%, rgba(240,70,140,.06), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+::selection{ background:var(--gold); color:#1a1408; }
+a{ color:inherit; }
+button{ font-family:inherit; color:inherit; cursor:pointer; }
+input{ font-family:inherit; }
+
+.mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+/* ---------- layout shell ---------- */
+.wrap{ max-width:1380px; margin:0 auto; padding:28px clamp(16px,3vw,40px) 80px; }
+
+/* ---------- header ---------- */
+header.app{
+  display:flex; flex-wrap:wrap; align-items:flex-end; gap:18px 28px;
+  padding-bottom:22px; margin-bottom:26px;
+  border-bottom:1px solid var(--line-soft);
+  animation:rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.brand{ flex:1 1 320px; min-width:0; }
+.eyebrow{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:.32em;
+  text-transform:uppercase; color:var(--ink-3); margin:0 0 6px;
+}
+h1.title{
+  font-family:var(--font-display); font-weight:600;
+  font-size:clamp(34px,6vw,58px); line-height:.98; letter-spacing:-.01em;
+  margin:0; color:var(--ink);
+}
+h1.title em{
+  font-style:italic; font-weight:500;
+  background:linear-gradient(100deg,var(--gold),var(--teal) 60%,#F0468C);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.lede{ color:var(--ink-2); margin:12px 0 0; max-width:54ch; font-size:14.5px; }
+.lede b{ color:var(--ink); font-weight:600; }
+
+.toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.btn{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--surface); border:1px solid var(--line);
+  color:var(--ink-2); padding:9px 13px; border-radius:11px;
+  font-size:13px; font-weight:600; transition:.18s;
+}
+.btn:hover{ border-color:#3a3a48; color:var(--ink); transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); }
+.btn.primary{ background:var(--ink); color:#15131c; border-color:var(--ink); }
+.btn.primary:hover{ background:#fff; }
+.btn .ic{ font-size:14px; line-height:1; }
+
+/* ---------- section scaffolding ---------- */
+.sec-head{ display:flex; align-items:baseline; gap:12px; margin:0 0 14px; }
+.sec-head h2{
+  font-family:var(--font-display); font-weight:600; font-size:20px;
+  letter-spacing:-.01em; margin:0;
+}
+.sec-head .hint{ font-size:12.5px; color:var(--ink-3); margin-left:auto; }
+
+/* ============================================================
+   1 · THE DAY RIBBON  (signature element)
+   ============================================================ */
+.ribbon{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr));
+  gap:14px; margin-bottom:18px;
+}
+.day{
+  position:relative; text-align:left;
+  background:linear-gradient(180deg,var(--surface),var(--bg-2));
+  border:1px solid var(--line); border-radius:var(--radius);
+  padding:15px 15px 13px; min-height:150px;
+  display:flex; flex-direction:column; gap:12px;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s, box-shadow .2s;
+  animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.day:hover{ transform:translateY(-3px); border-color:#3a3a48; }
+.day.active{
+  border-color:transparent;
+  box-shadow:0 0 0 1.5px var(--gold), var(--shadow);
+}
+.day.drop-on{ border-color:var(--teal); box-shadow:0 0 0 1.5px var(--teal); }
+.day-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.day-dow{ font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3); }
+.day-date{ font-family:var(--font-display); font-size:23px; font-weight:600; line-height:1; margin-top:3px; }
+.day-tag{
+  font-size:10.5px; font-weight:600; color:var(--ink-2);
+  background:var(--surface-2); border:1px solid var(--line);
+  padding:3px 7px; border-radius:999px; white-space:nowrap;
+}
+.day-tag.go{ color:var(--teal); border-color:rgba(45,212,191,.35); background:rgba(45,212,191,.08); }
+.day-tag.bye{ color:var(--gold); border-color:rgba(244,183,64,.35); background:rgba(244,183,64,.08); }
+
+.cluster{ display:flex; align-items:center; min-height:38px; }
+.cluster .av{ margin-left:-12px; box-shadow:0 0 0 2.5px var(--bg-2); }
+.cluster .av:first-child{ margin-left:0; }
+.cluster .more{
+  width:34px; height:34px; margin-left:-12px; border-radius:50%;
+  display:grid; place-items:center; font-size:12px; font-weight:700;
+  background:var(--surface-2); border:2.5px solid var(--bg-2); color:var(--ink-2);
+}
+.cluster .empty{
+  font-size:12.5px; color:var(--ink-3);
+  border:1px dashed var(--line); border-radius:9px; padding:8px 11px; width:100%;
+}
+.day-foot{ margin-top:auto; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-2); }
+.day-foot .dot{ width:5px; height:5px; border-radius:50%; background:var(--ink-3); }
+
+/* avatars (shared) */
+.av{
+  width:34px; height:34px; border-radius:50%;
+  display:grid; place-items:center; font-size:16px;
+  color:#fff; flex:none; position:relative; overflow:hidden;
+  background-size:cover; background-position:center;
+}
+.av .ring{ position:absolute; inset:0; border-radius:50%; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18); z-index:2; }
+.av .av-glyph{ position:relative; z-index:0; line-height:1; }
+.av .av-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+
+/* ============================================================
+   2 · DAY DETAIL  (horizontal 15-min grid)
+   ============================================================ */
+.daypanel{
+  background:linear-gradient(180deg,var(--surface),var(--bg-2));
+  border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px 16px 18px; margin-bottom:26px; box-shadow:var(--shadow);
+  animation:expand .35s cubic-bezier(.2,.8,.2,1) both;
+}
+.daypanel-head{ display:flex; align-items:center; gap:12px; margin-bottom:6px; flex-wrap:wrap; }
+.daypanel-head h3{ font-family:var(--font-display); font-size:22px; font-weight:600; margin:0; }
+.daypanel-head .meta{ font-size:12.5px; color:var(--ink-2); }
+.daypanel-head .spacer{ flex:1; }
+.linkbtn{ background:none; border:none; color:var(--ink-3); font-size:12.5px; font-weight:600; padding:6px 8px; border-radius:8px; }
+.linkbtn:hover{ color:#ff8a6e; background:rgba(255,107,74,.08); }
+
+.gridscroll{ overflow-x:auto; overflow-y:hidden; padding-bottom:6px; margin-top:10px; scrollbar-width:thin; }
+.gridscroll::-webkit-scrollbar{ height:9px; }
+.gridscroll::-webkit-scrollbar-thumb{ background:var(--line); border-radius:9px; }
+.hours{ position:relative; height:18px; }
+.hour{ position:absolute; top:0; font-family:var(--font-mono); font-size:10.5px; color:var(--ink-3); transform:translateX(-2px); }
+.track{
+  position:relative; margin-top:4px;
+  border-radius:12px; border:1px solid var(--line-soft);
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--slot-px) - 1px), var(--line-soft) calc(var(--slot-px) - 1px), var(--line-soft) var(--slot-px)),
+    var(--bg);
+}
+.track .hourline{ position:absolute; top:0; bottom:0; width:1px; background:var(--line); }
+.track.drop-on{ box-shadow:inset 0 0 0 1.5px var(--teal); }
+.track-empty{
+  position:absolute; inset:0; display:grid; place-items:center;
+  color:var(--ink-3); font-size:13px; pointer-events:none; text-align:center; padding:0 16px;
+}
+
+.block{
+  position:absolute; height:var(--block-h);
+  border-radius:11px; padding:7px 9px;
+  display:flex; align-items:center; gap:9px; overflow:hidden;
+  background:var(--surface-2); border:1px solid var(--line);
+  box-shadow:0 6px 16px -10px rgba(0,0,0,.8);
+  touch-action:none; user-select:none; cursor:grab;
+  animation:pop .28s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.block::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--cat,#888); }
+.block:active{ cursor:grabbing; }
+.block .b-body{ min-width:0; display:flex; flex-direction:column; gap:1px; }
+.block .b-name{ font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.block .b-time{ font-family:var(--font-mono); font-size:10px; color:var(--ink-2); white-space:nowrap; }
+.block .b-x{
+  position:absolute; top:4px; right:5px; width:18px; height:18px; border-radius:6px;
+  display:none; place-items:center; background:rgba(0,0,0,.35); border:none; color:var(--ink-2);
+  font-size:12px; line-height:1;
+}
+.block:hover .b-x{ display:grid; }
+.block .b-x:hover{ color:#ff8a6e; }
+.block .resize{ position:absolute; right:0; top:0; bottom:0; width:12px; cursor:ew-resize; }
+.block .resize::after{ content:""; position:absolute; right:4px; top:50%; transform:translateY(-50%); width:3px; height:20px; border-radius:2px; background:rgba(255,255,255,.2); }
+.block.dragging{ z-index:30; box-shadow:0 16px 30px -12px rgba(0,0,0,.9); cursor:grabbing; }
+
+/* ============================================================
+   3 · MAP + LIST columns
+   ============================================================ */
+.cols{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:22px; align-items:start; }
+.panel{
+  background:linear-gradient(180deg,var(--surface),var(--bg-2));
+  border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; box-shadow:var(--shadow);
+}
+#map{ height:clamp(380px,52vh,560px); border-radius:12px; border:1px solid var(--line); background:#0b0b10; }
+.map-legend{ margin-top:11px; font-size:12px; color:var(--ink-2); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.map-legend .pin{ width:18px; height:18px; border-radius:50%; display:grid; place-items:center; font-size:10px; font-weight:700; color:#fff; background:var(--gold); }
+
+/* list */
+.list-tools{ display:flex; gap:9px; margin-bottom:14px; flex-wrap:wrap; }
+.search{ flex:1 1 160px; display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:0 11px; }
+.search input{ flex:1; background:none; border:none; outline:none; color:var(--ink); padding:9px 0; font-size:13.5px; }
+.search input::placeholder{ color:var(--ink-3); }
+.search .mag{ color:var(--ink-3); font-size:13px; }
+.seg{ display:flex; background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:3px; }
+.seg button{ background:none; border:none; padding:7px 12px; border-radius:8px; font-size:12.5px; font-weight:600; color:var(--ink-3); }
+.seg button.on{ background:var(--surface-2); color:var(--ink); }
+
+.listscroll{ max-height:clamp(420px,58vh,640px); overflow-y:auto; padding-right:4px; margin-right:-4px; scrollbar-width:thin; }
+.listscroll::-webkit-scrollbar{ width:8px; }
+.listscroll::-webkit-scrollbar-thumb{ background:var(--line); border-radius:8px; }
+
+.group-head{ display:flex; align-items:center; gap:9px; margin:16px 2px 9px; position:sticky; top:0; background:linear-gradient(180deg,var(--surface) 60%,transparent); padding:5px 0 4px; z-index:2; }
+.group-head:first-child{ margin-top:2px; }
+.group-head .gc{ width:9px; height:9px; border-radius:3px; }
+.group-head h4{ font-size:13px; font-weight:700; letter-spacing:.02em; margin:0; }
+.group-head .cnt{ font-family:var(--font-mono); font-size:11px; color:var(--ink-3); margin-left:auto; }
+
+.card{
+  display:flex; align-items:center; gap:11px;
+  background:var(--surface); border:1px solid var(--line-soft);
+  border-radius:13px; padding:9px 10px 9px 11px; margin-bottom:8px;
+  transition:transform .15s, border-color .15s, background .15s;
+  touch-action:none; user-select:none;
+}
+.card:hover{ border-color:#34343f; transform:translateX(2px); background:var(--surface-2); }
+.card.scheduled{ opacity:.62; }
+.card .c-av{ cursor:grab; }
+.card .c-main{ flex:1; min-width:0; }
+.card .c-name{ font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.card .c-meta{ font-size:11.5px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.card .c-meta .dur{ font-family:var(--font-mono); }
+.card .c-acts{ display:flex; gap:4px; flex:none; }
+.icbtn{ width:30px; height:30px; border-radius:9px; border:1px solid var(--line); background:var(--bg); color:var(--ink-2); display:grid; place-items:center; font-size:14px; transition:.15s; }
+.icbtn:hover{ color:var(--ink); border-color:#3a3a48; }
+.icbtn.add:hover{ color:var(--teal); border-color:rgba(45,212,191,.4); }
+.card.ghost{ position:fixed; z-index:200; pointer-events:none; width:240px; box-shadow:0 24px 50px -16px rgba(0,0,0,.85); transform:rotate(-1.5deg) scale(1.02); opacity:.96; }
+
+.empty-list{ text-align:center; color:var(--ink-3); font-size:13px; padding:30px 10px; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.scrim{ position:fixed; inset:0; background:rgba(8,8,12,.66); backdrop-filter:blur(5px); z-index:2000; display:grid; place-items:center; padding:18px; opacity:0; pointer-events:none; transition:.22s; }
+.scrim.on{ opacity:1; pointer-events:auto; }
+.modal{
+  width:min(460px,100%); max-height:88vh; overflow:auto;
+  background:var(--surface); border:1px solid var(--line); border-radius:18px;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.9); transform:translateY(14px) scale(.98); transition:.24s cubic-bezier(.2,.8,.2,1);
+}
+.scrim.on .modal{ transform:none; }
+.modal .m-hero{ height:96px; display:flex; align-items:flex-end; padding:14px; position:relative; }
+.modal .m-hero .m-close{ position:absolute; top:12px; right:12px; width:30px; height:30px; border-radius:9px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.12); color:#fff; font-size:15px; }
+.modal .m-hero .av{ width:52px; height:52px; font-size:24px; box-shadow:0 8px 18px -8px rgba(0,0,0,.8); }
+.modal .m-body{ padding:16px 18px 20px; }
+.modal .m-cat{ font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; }
+.modal h3{ font-family:var(--font-display); font-size:24px; font-weight:600; margin:4px 0 2px; }
+.modal .m-zone{ font-size:13px; color:var(--ink-2); }
+.modal .m-note{ font-size:14px; color:var(--ink); margin:14px 0; line-height:1.55; }
+.modal .video{ position:relative; padding-top:56.25%; border-radius:12px; overflow:hidden; margin:14px 0; border:1px solid var(--line); }
+.modal .video iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.modal .video .video-facade{ position:absolute; inset:0; width:100%; height:100%; border:0; padding:0; margin:0; cursor:pointer; background:#000; display:block; }
+.modal .video .video-facade img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.82; transition:.2s; }
+.modal .video .video-facade:hover img{ opacity:1; transform:scale(1.03); }
+.modal .video .vplay{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:58px; height:58px; border-radius:50%; background:rgba(20,18,28,.72); color:#fff; display:grid; place-items:center; font-size:20px; padding-left:3px; box-shadow:0 6px 20px -4px rgba(0,0,0,.6); transition:.2s; }
+.modal .video .video-facade:hover .vplay{ background:#F0468C; transform:translate(-50%,-50%) scale(1.08); }
+.modal .m-photo{ position:relative; padding-top:60%; border-radius:12px; overflow:hidden; margin:14px 0; border:1px solid var(--line); background:#0c0c12; }
+.modal .m-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.field{ margin-top:13px; }
+.field label{ display:block; font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:5px; }
+.field input, .field select, .field textarea{
+  width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+  color:var(--ink); padding:10px 11px; font-size:13.5px; outline:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus{ border-color:#3a3a48; }
+.m-actions{ display:flex; gap:9px; margin-top:18px; }
+.m-actions .btn{ flex:1; justify-content:center; }
+.gmaps-link{ display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--teal); text-decoration:none; }
+.gmaps-link:hover{ text-decoration:underline; }
+
+/* toast */
+.toast{ position:fixed; left:50%; bottom:24px; transform:translate(-50%,20px); background:var(--ink); color:#15131c; font-size:13px; font-weight:600; padding:10px 16px; border-radius:11px; box-shadow:var(--shadow); z-index:2100; opacity:0; transition:.25s; pointer-events:none; }
+.toast.on{ opacity:1; transform:translate(-50%,0); }
+
+/* leaflet marker pin */
+.bcn-pin{ background:none !important; border:none !important; }
+.bcn-pin .badge{
+  width:30px; height:30px; border-radius:50% 50% 50% 2px; transform:rotate(45deg);
+  display:grid; place-items:center; box-shadow:0 4px 10px -2px rgba(0,0,0,.7); border:2px solid rgba(255,255,255,.85);
+  animation:drop .35s cubic-bezier(.2,.9,.3,1.3) both;
+}
+.bcn-pin .badge span{ transform:rotate(-45deg); font-size:12px; font-weight:700; color:#fff; font-family:var(--font-mono); }
+.bcn-pin .badge.home{ border-radius:50%; }
+.leaflet-popup-content-wrapper{ background:var(--surface); color:var(--ink); border-radius:12px; border:1px solid var(--line); }
+.leaflet-popup-tip{ background:var(--surface); }
+.leaflet-popup-content{ margin:11px 13px; font-family:var(--font-body); }
+.leaflet-popup-content b{ font-family:var(--font-display); font-size:15px; font-weight:600; }
+.leaflet-container a.leaflet-popup-close-button{ color:var(--ink-3); }
+.leaflet-bar a{ background:var(--surface); color:var(--ink); border-color:var(--line); }
+.leaflet-bar a:hover{ background:var(--surface-2); }
+
+/* ---------- animations ---------- */
+@keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+@keyframes expand{ from{ opacity:0; transform:translateY(-8px) scaleY(.98); } to{ opacity:1; transform:none; } }
+@keyframes pop{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }
+@keyframes drop{ from{ opacity:0; transform:rotate(45deg) translateY(-10px) scale(.6); } }
+
+/* ---------- responsive ---------- */
+@media (max-width:880px){
+  .cols{ grid-template-columns:1fr; }
+  h1.title{ font-size:clamp(30px,9vw,44px); }
+}
+@media (prefers-reduced-motion:reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; border-radius:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <p class="eyebrow">A trip planner from Saimon</p>
+      <h1 class="title">Julia in <em>Barcelona</em></h1>
+      <p class="lede">Five days, <b>5–9 July</b>. Drag a place onto a day to plan it, then open the day to slot it into the hours. The map numbers your stops in the order you'll visit them. <b>Everything saves to this browser.</b></p>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btnAdd"><span class="ic">＋</span> Add place</button>
+      <button class="btn" id="btnExport"><span class="ic">↧</span> Export</button>
+      <button class="btn" id="btnImport"><span class="ic">↥</span> Import</button>
+      <button class="btn" id="btnReset"><span class="ic">⟲</span> Reset</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <h2>The five days</h2>
+      <span class="hint">Tap a day to open its hours</span>
+    </div>
+    <div class="ribbon" id="ribbon"></div>
+    <div id="dayPanel"></div>
+  </section>
+
+  <div class="cols">
+    <section class="panel">
+      <div class="sec-head"><h2>Map</h2></div>
+      <div id="map"></div>
+      <div class="map-legend" id="mapLegend"></div>
+    </section>
+
+    <section class="panel">
+      <div class="sec-head"><h2>Places &amp; activities</h2></div>
+      <div class="list-tools">
+        <div class="search">
+          <span class="mag">⌕</span>
+          <input id="search" type="search" placeholder="Search places…" autocomplete="off" />
+        </div>
+        <div class="seg" id="groupSeg">
+          <button data-group="category" class="on">Category</button>
+          <button data-group="zone">By area</button>
+        </div>
+      </div>
+      <div class="listscroll" id="list"></div>
+    </section>
+  </div>
+</div>
+
+<!-- detail / edit modal -->
+<div class="scrim" id="scrim">
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<input type="file" id="importFile" accept="application/json" style="display:none" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+"use strict";
+/* ============================================================
+   CONFIG — tweak the trip here
+   ------------------------------------------------------------
+   To add Julia's first days (Fri 3 / Sat 4 July), just add rows
+   to DAYS below — the whole UI adapts automatically.
+   ============================================================ */
+const CONFIG = {
+  startHour: 8,        // first hour shown in a day
+  endHour:   24,       // last hour shown (24 = midnight)
+  slotMin:   15,       // granularity
+  slotPx:    24,       // px width per 15-min slot (matches --slot-px)
+  blockH:    56,
+  storageKey:"bcn-trip-planner-v1",
+  mapCenter:[41.392, 2.165],
+  mapZoom:   13,
+};
+// Trip days. Defaults to Julia's 5 days that overlap with Saimon's availability.
+// To add the earlier days, prepend e.g.
+//   { id:"d0a", dow:"Fri", date:"Jul 3" },
+//   { id:"d0b", dow:"Sat", date:"Jul 4" },
+// ids must stay unique; order here = order shown in the timeline.
+const DAYS = [
+  { id:"d1", dow:"Sun", date:"Jul 5", tag:"Saimon free from 18:00", tagClass:"go" },
+  { id:"d2", dow:"Mon", date:"Jul 6" },
+  { id:"d3", dow:"Tue", date:"Jul 7" },
+  { id:"d4", dow:"Wed", date:"Jul 8" },
+  { id:"d5", dow:"Thu", date:"Jul 9", tag:"Off to Paris tonight", tagClass:"bye" },
+];
+
+const CATS = {
+  modernist:{ label:"Modernist",        color:"#FF6B4A" },
+  park:     { label:"Parks",            color:"#34D399" },
+  museum:   { label:"Museums",          color:"#F4B740" },
+  food:     { label:"Food",             color:"#F0468C" },
+  market:   { label:"Markets",          color:"#FB923C" },
+  ambling:  { label:"Ambling",          color:"#5B8DEF" },
+  visit:    { label:"Shows & visits",   color:"#A78BFA" },
+  cafe:     { label:"Cafés & drinks",   color:"#F472B6" },
+  quick:    { label:"Quick stops",      color:"#22D3EE" },
+  active:   { label:"Active & beaches", color:"#A3E635" },
+  daytrip:  { label:"Day trips",        color:"#FBBF24" },
+  lodging:  { label:"Stay",             color:"#94A3B8" },
+};
+const CAT_ORDER = ["modernist","quick","museum","park","visit","market","cafe","food","ambling","active","daytrip","lodging"];
+
+const ZONES = {
+  eixample:"Eixample", gracia:"Gràcia", gothic:"Gothic Quarter", born:"El Born",
+  raval:"El Raval", montjuic:"Montjuïc", horta:"Horta", sarria:"Sarrià / Collserola",
+  "les-corts":"Les Corts", port:"Port & beaches", outskirts:"Out of town",
+};
+const ZONE_ORDER = ["eixample","gothic","born","raval","gracia","montjuic","port","sarria","horta","les-corts","outskirts"];
+
+/* ------------------------------------------------------------
+   DATA — coordinates verified via Google Places.
+   dur = default minutes · note = planning tip (Saimon's where given)
+   ------------------------------------------------------------ */
+const DEFAULT_PLACES = [
+  // Modernist
+  { id:"sagrada", name:"Sagrada Família", cat:"modernist", zone:"eixample", lat:41.40363, lng:2.17436, dur:120, emoji:"⛪", note:"Book a timed slot ahead. Saimon's view tip: Cafè Sacrotel (Rosselló) or the Lamaro hotel terrace.", video:"odBWmbca9sc" },
+  { id:"batllo", name:"Casa Batlló", cat:"modernist", zone:"eixample", lat:41.39170, lng:2.16492, dur:90, emoji:"🪟", note:"Gaudí's dragon façade on Passeig de Gràcia. Open late." },
+  { id:"pedrera", name:"La Pedrera (Casa Milà)", cat:"modernist", zone:"eixample", lat:41.39522, lng:2.16190, dur:90, emoji:"🌙", note:"Wavy stone + warrior-chimney rooftop. Two minutes from Julia's hotel." },
+  { id:"palau", name:"Palau de la Música Catalana", cat:"modernist", zone:"born", lat:41.38758, lng:2.17531, dur:75, emoji:"🎶", note:"UNESCO concert hall — guided tours, or catch an evening concert." },
+  { id:"santpau", name:"Hospital de Sant Pau", cat:"modernist", zone:"horta", lat:41.41550, lng:2.17473, dur:90, emoji:"🏥", note:"Doménech i Montaner's pavilion city — ~10 min walk up from Sagrada." },
+  { id:"guell", name:"Park Güell", cat:"modernist", zone:"gracia", lat:41.41449, lng:2.15269, dur:120, emoji:"🦎", note:"Book the timed monumental-zone entry. The free park areas have great views." },
+  { id:"vicens", name:"Casa Vicens", cat:"modernist", zone:"gracia", lat:41.40350, lng:2.15065, dur:60, emoji:"🟦", note:"Gaudí's playful, tile-clad first house. Quieter than the others." },
+  { id:"punxes", name:"Casa de les Punxes", cat:"modernist", zone:"eixample", lat:41.39800, lng:2.16399, dur:30, emoji:"🏰", note:"Fairytale six-spired castle (Casa Terrades). Mostly admired from outside now." },
+  // Parks
+  { id:"ciutadella", name:"Parc de la Ciutadella", cat:"park", zone:"born", lat:41.38812, lng:2.18602, dur:90, emoji:"🌳", note:"Rowing lake, the cascade fountain, and resident green parrots." },
+  { id:"arc", name:"Arc de Triomf", cat:"park", zone:"born", lat:41.39105, lng:2.18064, dur:15, emoji:"🧱", note:"Red-brick arch + palm promenade leading into Ciutadella." },
+  { id:"laberint", name:"Parc del Laberint d'Horta", cat:"park", zone:"horta", lat:41.43997, lng:2.14557, dur:90, emoji:"🌀", note:"Romantic neoclassical garden with a real hedge maze. Small entry fee." },
+  { id:"grec", name:"Teatre Grec & gardens", cat:"park", zone:"montjuic", lat:41.36951, lng:2.15974, dur:30, emoji:"🎭", note:"Quiet open-air theatre + gardens on Montjuïc. Free." },
+  // Museums
+  { id:"picasso", name:"Picasso Museum", cat:"museum", zone:"born", lat:41.38527, lng:2.18095, dur:120, emoji:"🎨", note:"His early years, chronologically. Closed Mondays — bag-check queue can be slow." },
+  { id:"campnou", name:"Camp Nou (FCB Museum)", cat:"museum", zone:"les-corts", lat:41.38090, lng:2.12282, dur:150, emoji:"⚽", note:"Football fans only. Stadium is mid-renovation — check what's open." },
+  { id:"aquarium", name:"L'Aquàrium", cat:"museum", zone:"port", lat:41.37685, lng:2.18433, dur:120, emoji:"🐠", note:"Animal fans — the shark tunnel is the highlight. Down at Port Vell." },
+  { id:"cosmocaixa", name:"CosmoCaixa (Science)", cat:"museum", zone:"sarria", lat:41.41318, lng:2.13112, dur:180, emoji:"🔬", note:"Saimon's favourite. A flooded rainforest indoors — easily half a day." },
+  { id:"miro", name:"Fundació Joan Miró", cat:"museum", zone:"montjuic", lat:41.36863, lng:2.15985, dur:120, emoji:"🟡", note:"Bright Sert building on Montjuïc with city views. Closed Mondays." },
+  // Food
+  { id:"exotica", name:"Exòtica (jungle brunch)", cat:"food", zone:"eixample", lat:41.38912, lng:2.17582, dur:90, emoji:"🌴", note:"Brunch in a jungle. Open 9–16h daily; the queue builds from noon." },
+  { id:"berry", name:"Berry (brunch)", cat:"food", zone:"eixample", lat:41.38990, lng:2.16700, dur:75, emoji:"🍓", note:"Saimon's pick. Pin is approximate — drop the exact spot in via Edit." },
+  // Markets
+  { id:"boqueria", name:"Mercat de la Boqueria", cat:"market", zone:"raval", lat:41.38174, lng:2.17159, dur:45, emoji:"🧺", note:"Iconic but very touristy, and now partly ticketed. Closed Sundays." },
+  { id:"santantoni", name:"Mercat de Sant Antoni", cat:"market", zone:"eixample", lat:41.37864, lng:2.16205, dur:45, emoji:"🛍️", note:"The local's market. Sunday morning book-and-coin market outside. Hall closed Sun." },
+  { id:"santacaterina", name:"Mercat de Santa Caterina", cat:"market", zone:"born", lat:41.38636, lng:2.17816, dur:30, emoji:"🌈", note:"Wavy rainbow roof, calmer than Boqueria. Closed Sundays." },
+  // Ambling
+  { id:"cascantic", name:"Casc Antic (Gothic Q.)", cat:"ambling", zone:"gothic", lat:41.38330, lng:2.17690, dur:90, emoji:"🚶", note:"Aimless roaming through medieval lanes — bars everywhere." },
+  { id:"born", name:"El Born", cat:"ambling", zone:"born", lat:41.38450, lng:2.18200, dur:90, emoji:"🍷", note:"Boutiques, wine bars, and Santa Maria del Mar at its heart." },
+  { id:"raval", name:"El Raval", cat:"ambling", zone:"raval", lat:41.37970, lng:2.16860, dur:90, emoji:"🎒", note:"Grittier, arty, multicultural. Great street food and dive bars." },
+  { id:"gracia", name:"Gràcia", cat:"ambling", zone:"gracia", lat:41.40190, lng:2.15650, dur:90, emoji:"☕", note:"Village-like squares, indie shops, terraces. Lovely at dusk." },
+  { id:"sants", name:"Sants", cat:"ambling", zone:"les-corts", lat:41.37540, lng:2.14100, dur:60, emoji:"🚉", note:"Workaday, un-touristy neighbourhood around the big station." },
+  { id:"montjuicamble", name:"Montjuïc hill", cat:"ambling", zone:"montjuic", lat:41.36400, lng:2.15800, dur:120, emoji:"⛰️", note:"Gardens, viewpoints and museums — pair with the cable car." },
+  // Visits / shows
+  { id:"fountain", name:"Montjuïc Magic Fountain", cat:"visit", zone:"montjuic", lat:41.37116, lng:2.15174, dur:60, emoji:"💦", note:"Light, water & music show below the Palau. Thu–Sun, ~21:00–22:00 in summer." },
+  { id:"poble", name:"Poble Espanyol", cat:"visit", zone:"montjuic", lat:41.36907, lng:2.14674, dur:120, emoji:"🏘️", note:"A village of Spain's architecture — shops, workshops, sometimes concerts." },
+  // Cafés & drinks (Saimon's tips)
+  { id:"bosc", name:"El Bosc de les Fades", cat:"cafe", zone:"gothic", lat:41.37718, lng:2.17739, dur:60, emoji:"🧚", note:"A fairytale forest bar tucked just off La Rambla.", url:"https://maps.app.goo.gl/8RXD88rBtN71YrDy9" },
+  { id:"xampanyet", name:"El Xampanyet", cat:"cafe", zone:"born", lat:41.38454, lng:2.18168, dur:75, emoji:"🥂", note:"House cava + classic tapas at the counter. Queue early; closed Sun.", url:"https://maps.app.goo.gl/amZZFXmkNoRjyyBT6" },
+  { id:"antic", name:"Antic Teatre", cat:"cafe", zone:"born", lat:41.38720, lng:2.17596, dur:60, emoji:"🌳", note:"Hidden leafy courtyard bar behind the Palau. Service is slow, the tree is worth it.", url:"https://maps.app.goo.gl/YMXQutEZ35yz1MvV7" },
+  { id:"paradiso", name:"Paradiso", cat:"cafe", zone:"born", lat:41.38368, lng:2.18369, dur:90, emoji:"🍹", note:"Speakeasy behind a pastrami fridge — on the World's-50-Best list. Expect a queue.", url:"https://maps.app.goo.gl/s5nDKL8fLD9pU1UdA" },
+  { id:"cocovail", name:"Cocovail Beer Hall", cat:"cafe", zone:"eixample", lat:41.39263, lng:2.16586, dur:90, emoji:"🍺", note:"Craft beer + wings, relaxed and roomy.", url:"https://maps.app.goo.gl/5MUaQnVf9bTSAaLh7" },
+  { id:"kaelder", name:"Kælderkold", cat:"cafe", zone:"gothic", lat:41.38179, lng:2.17336, dur:60, emoji:"🍻", note:"17 taps of their own craft beer, near Santa Maria del Pi.", url:"https://maps.app.goo.gl/H2UXXnvJem7QsXLV7" },
+  // Quick 10-min stops
+  { id:"temple", name:"Temple d'August", cat:"quick", zone:"gothic", lat:41.38340, lng:2.17718, dur:15, emoji:"🏛️", note:"Roman columns hidden inside a Gothic courtyard. Free.", url:"https://maps.app.goo.gl/qrZQtL3pibKAqCw26" },
+  { id:"pont", name:"Pont del Bisbe", cat:"quick", zone:"gothic", lat:41.38330, lng:2.17642, dur:10, emoji:"🌉", note:"The lovers' arch. Go early — it's a photo magnet." },
+  { id:"ardiaca", name:"Casa de l'Ardiaca", cat:"quick", zone:"gothic", lat:41.38410, lng:2.17575, dur:15, emoji:"🌴", note:"Quiet courtyard + rooftop view behind the cathedral. Free.", url:"https://maps.app.goo.gl/3ZhCyKS1hFKMxccA7" },
+  { id:"besada", name:"El món neix en cada besada", cat:"quick", zone:"gothic", lat:41.38513, lng:2.17480, dur:10, emoji:"💋", note:"The 'kiss' photo-mosaic. Best very early before the crowd.", url:"https://maps.app.goo.gl/G8fdgaqnUjvVWZ8N7" },
+  { id:"mar", name:"Santa Maria del Mar", cat:"quick", zone:"born", lat:41.38389, lng:2.18207, dur:30, emoji:"⛪", note:"Pure, soaring Catalan Gothic in the heart of El Born." },
+  { id:"pi", name:"Santa Maria del Pi", cat:"quick", zone:"gothic", lat:41.38224, lng:2.17392, dur:30, emoji:"🌲", note:"Plaça del Pi — xocolata amb xurros and a weekend artisan market." },
+  // Active & beaches
+  { id:"portolimpic", name:"Port Olímpic jog", cat:"active", zone:"port", lat:41.38730, lng:2.19660, dur:60, emoji:"🏃", note:"Flat seafront run past Bogatell & Mar Bella." },
+  { id:"bogatell", name:"Platja de Bogatell", cat:"active", zone:"port", lat:41.39437, lng:2.20701, dur:120, emoji:"🏖️", note:"Easy evening swim — cleaner and calmer than Barceloneta." },
+  { id:"marbella", name:"Platja de la Mar Bella", cat:"active", zone:"port", lat:41.39866, lng:2.21221, dur:120, emoji:"🌊", note:"Relaxed beach; has nudist and LGBT+ sections and two chiringuitos." },
+  { id:"aigues", name:"Carretera de les Aigües", cat:"active", zone:"sarria", lat:41.41232, lng:2.10800, dur:90, emoji:"🚵", note:"Flat ~10 km trail above the city. Run or cycle it for sunset." },
+  { id:"pratcycle", name:"Ride to El Prat chiringuitos", cat:"active", zone:"outskirts", lat:41.29900, lng:2.09900, dur:180, emoji:"🚲", note:"Longer ride: Cornellà → El Prat → beach bar. Evening swim + drink. Pin approximate." },
+  // Day trip
+  { id:"sitges", name:"Sitges", cat:"daytrip", zone:"outskirts", lat:41.23659, lng:1.80590, dur:360, emoji:"🚆", note:"~40 min by train or car. Whitewashed old town + beaches." },
+  // Stay
+  { id:"hotel", name:"Hotel Ohla Eixample (base)", cat:"lodging", zone:"eixample", lat:41.39458, lng:2.15648, dur:0, emoji:"🏨", note:"Julia's hotel — near La Pedrera, rooftop pool.", url:"https://maps.app.goo.gl/gWdhESa49d8o5JKq7", pinned:true },
+];
+
+/* ============================================================
+   DERIVED CONSTANTS
+   ============================================================ */
+const SLOTS = (CONFIG.endHour - CONFIG.startHour) * 60 / CONFIG.slotMin;
+const SLOT_PX = CONFIG.slotPx;
+const SLOTS_PER_HOUR = 60 / CONFIG.slotMin;
+const TRACK_W = SLOTS * SLOT_PX;
+document.documentElement.style.setProperty("--slot-px", SLOT_PX + "px");
+document.documentElement.style.setProperty("--block-h", CONFIG.blockH + "px");
+
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const spanForDur = d => Math.max(1, Math.round((d||30) / CONFIG.slotMin));
+const slotToMin = s => CONFIG.startHour*60 + s*CONFIG.slotMin;
+const fmtTime = m => String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0");
+const fmtDur = m => { if(!m) return "—"; const h=Math.floor(m/60), mm=m%60; return (h?h+"h":"") + (mm?(h?" ":"")+mm+"m":""); };
+const uid = () => "b" + Math.random().toString(36).slice(2,9);
+const catColor = c => (CATS[c]||{}).color || "#888";
+const gmapsUrl = p => p.url || ("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.name + " Barcelona") + "&query_place_id=");
+
+/* ============================================================
+   STATE  +  persistence
+   ============================================================ */
+let state = {
+  places: {},            // id -> place (defaults overlaid with edits/customs)
+  order: [],             // display order of ids
+  schedule: {},          // dayId -> [{uid, placeId, start, span}]
+  ui: { activeDay: DAYS[0].id, group: "category", search: "" },
+  _edits: {},            // placeId -> partial overrides (persisted)
+  _custom: [],           // user-added places (persisted)
+};
+
+function buildPlaces(){
+  const map = {};
+  DEFAULT_PLACES.forEach(p => map[p.id] = { ...p });
+  state._custom.forEach(p => map[p.id] = { ...p, custom:true });
+  Object.entries(state._edits).forEach(([id, ov]) => { if(map[id]) map[id] = { ...map[id], ...ov }; });
+  state.places = map;
+  const known = new Set(Object.keys(map));
+  const base = [...DEFAULT_PLACES.map(p=>p.id), ...state._custom.map(p=>p.id)];
+  // keep saved order first, then any new ids
+  const seen = new Set();
+  state.order = [...(state.order||[]), ...base].filter(id => known.has(id) && !seen.has(id) && seen.add(id));
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(CONFIG.storageKey);
+    if(raw){
+      const s = JSON.parse(raw);
+      state.schedule = s.schedule || {};
+      state.ui = { ...state.ui, ...(s.ui||{}) };
+      state._edits = s.edits || {};
+      state._custom = s.custom || [];
+      state.order = s.order || [];
+    }
+  }catch(e){ console.warn("Could not load saved trip:", e); }
+  DAYS.forEach(d => { if(!state.schedule[d.id]) state.schedule[d.id] = []; });
+  if(!DAYS.some(d => d.id === state.ui.activeDay)) state.ui.activeDay = DAYS[0].id;
+  buildPlaces();
+}
+function save(){
+  try{
+    localStorage.setItem(CONFIG.storageKey, JSON.stringify({
+      schedule: state.schedule, ui: state.ui,
+      edits: state._edits, custom: state._custom, order: state.order,
+    }));
+  }catch(e){ toast("Couldn't save — storage may be full."); }
+}
+
+/* scheduling helpers */
+const dayBlocks = id => state.schedule[id] || [];
+const placeScheduledAnywhere = pid => DAYS.some(d => dayBlocks(d.id).some(b => b.placeId === pid));
+
+function firstFreeSlot(dayId, span){
+  const occ = new Array(SLOTS).fill(false);
+  dayBlocks(dayId).forEach(b => { for(let i=b.start;i<b.start+b.span;i++) if(i<SLOTS) occ[i]=true; });
+  for(let s=0; s+span<=SLOTS; s++){
+    let ok=true; for(let i=s;i<s+span;i++) if(occ[i]){ ok=false; break; }
+    if(ok) return s;
+  }
+  return 0;
+}
+function addBlock(dayId, placeId, startSlot){
+  const p = state.places[placeId]; if(!p) return;
+  const span = spanForDur(p.dur);
+  let start = (startSlot==null) ? firstFreeSlot(dayId, span) : clamp(startSlot, 0, SLOTS-span);
+  state.schedule[dayId].push({ uid:uid(), placeId, start, span });
+  save();
+}
+function removeBlock(dayId, blockUid){
+  state.schedule[dayId] = dayBlocks(dayId).filter(b => b.uid !== blockUid);
+  save();
+}
+
+/* lane packing so blocks never visually overlap */
+function laneOf(blocks){
+  const sorted = [...blocks].sort((a,b)=> a.start-b.start || b.span-a.span);
+  const laneEnds = [];
+  const lane = {};
+  sorted.forEach(b => {
+    let placed = -1;
+    for(let i=0;i<laneEnds.length;i++){ if(laneEnds[i] <= b.start){ placed=i; break; } }
+    if(placed === -1){ placed = laneEnds.length; laneEnds.push(0); }
+    laneEnds[placed] = b.start + b.span;
+    lane[b.uid] = placed;
+  });
+  return { lane, lanes: Math.max(1, laneEnds.length) };
+}
+
+/* ============================================================
+   RENDER — avatars
+   ============================================================ */
+function avatarHTML(p, size){
+  const c = catColor(p.cat);
+  const sz = size ? `width:${size}px;height:${size}px;font-size:${Math.round(size*0.46)}px;` : "";
+  const grad = `linear-gradient(140deg, ${c}, color-mix(in srgb, ${c}, #000 48%))`;
+  const glyph = p.emoji || "•";
+  // Image (custom override or fetched default) layers on top; if it fails to load
+  // it removes itself and reveals the gradient + emoji underneath.
+  const img = p.image
+    ? `<img class="av-img" src="${p.image.replace(/"/g,"&quot;")}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
+    : "";
+  return `<span class="av" style="background:${grad};${sz}"><span class="ring"></span><span class="av-glyph">${glyph}</span>${img}</span>`;
+}
+
+/* ============================================================
+   RENDER — ribbon
+   ============================================================ */
+function renderRibbon(){
+  const r = $("#ribbon"); r.innerHTML = "";
+  DAYS.forEach((d, idx) => {
+    const blocks = [...dayBlocks(d.id)].sort((a,b)=>a.start-b.start);
+    const totalMin = blocks.reduce((s,b)=> s + b.span*CONFIG.slotMin, 0);
+    const el = document.createElement("button");
+    el.className = "day" + (state.ui.activeDay===d.id ? " active":"");
+    el.dataset.dropDay = d.id;
+    el.style.animationDelay = (idx*60)+"ms";
+
+    let clusterHTML;
+    if(!blocks.length){
+      clusterHTML = `<span class="empty">Drag a place here ↑</span>`;
+    } else {
+      const shown = blocks.slice(0,5).map(b => avatarHTML(state.places[b.placeId])).join("");
+      const more = blocks.length>5 ? `<span class="more">+${blocks.length-5}</span>` : "";
+      clusterHTML = shown + more;
+    }
+    const tag = d.tag ? `<span class="day-tag ${d.tagClass||""}">${d.tag}</span>` : "";
+    el.innerHTML = `
+      <div class="day-top">
+        <div><div class="day-dow">${d.dow}</div><div class="day-date">${d.date}</div></div>
+        ${tag}
+      </div>
+      <div class="cluster">${clusterHTML}</div>
+      <div class="day-foot">
+        <span class="mono">${blocks.length} ${blocks.length===1?"stop":"stops"}</span>
+        <span class="dot"></span>
+        <span class="mono">${fmtDur(totalMin)}</span>
+      </div>`;
+    el.addEventListener("click", () => { state.ui.activeDay = d.id; save(); renderRibbon(); renderDayPanel(); renderMap(); });
+    r.appendChild(el);
+  });
+}
+
+/* ============================================================
+   RENDER — day panel (the 15-min grid)
+   ============================================================ */
+function renderDayPanel(){
+  const host = $("#dayPanel"); host.innerHTML = "";
+  const d = DAYS.find(x => x.id === state.ui.activeDay); if(!d) return;
+  const blocks = dayBlocks(d.id);
+  const { lane, lanes } = laneOf(blocks);
+  const trackH = lanes * (CONFIG.blockH + 8) + 8;
+
+  const panel = document.createElement("div");
+  panel.className = "daypanel";
+
+  // hour labels
+  let hours = "";
+  for(let h=CONFIG.startHour; h<=CONFIG.endHour; h++){
+    const left = (h-CONFIG.startHour)*SLOTS_PER_HOUR*SLOT_PX;
+    hours += `<span class="hour" style="left:${left}px">${String(h).padStart(2,"0")}</span>`;
+  }
+  // hour gridlines
+  let lines = "";
+  for(let h=CONFIG.startHour; h<=CONFIG.endHour; h++){
+    const left = (h-CONFIG.startHour)*SLOTS_PER_HOUR*SLOT_PX;
+    lines += `<div class="hourline" style="left:${left}px"></div>`;
+  }
+  // blocks
+  const blocksHTML = blocks.map(b => {
+    const p = state.places[b.placeId]; if(!p) return "";
+    const left = b.start*SLOT_PX, w = b.span*SLOT_PX, top = lane[b.uid]*(CONFIG.blockH+8)+4;
+    const t = fmtTime(slotToMin(b.start)) + "–" + fmtTime(slotToMin(b.start+b.span));
+    return `<div class="block" data-uid="${b.uid}" data-place="${p.id}"
+                 style="left:${left}px;width:${w}px;top:${top}px;--cat:${catColor(p.cat)}">
+        ${avatarHTML(p, 30)}
+        <div class="b-body"><span class="b-name">${p.name}</span><span class="b-time mono">${t}</span></div>
+        <button class="b-x" title="Remove">✕</button>
+        <div class="resize" title="Drag to change duration"></div>
+      </div>`;
+  }).join("");
+
+  const empty = blocks.length ? "" : `<div class="track-empty">Nothing planned yet — drag places here, or use the ＋ on a card.</div>`;
+
+  panel.innerHTML = `
+    <div class="daypanel-head">
+      <h3>${d.dow}, ${d.date}</h3>
+      ${d.tag ? `<span class="day-tag ${d.tagClass||""}">${d.tag}</span>`:""}
+      <span class="meta mono">${CONFIG.startHour}:00 – ${CONFIG.endHour}:00 · 15-min slots</span>
+      <span class="spacer"></span>
+      ${blocks.length ? `<button class="linkbtn" id="clearDay">Clear day</button>`:""}
+    </div>
+    <div class="gridscroll">
+      <div style="width:${TRACK_W}px">
+        <div class="hours">${hours}</div>
+        <div class="track" data-grid-day="${d.id}" style="height:${trackH}px">
+          ${lines}${empty}${blocksHTML}
+        </div>
+      </div>
+    </div>`;
+  host.appendChild(panel);
+
+  // wire block interactions
+  $$(".block", panel).forEach(bel => {
+    const u = bel.dataset.uid;
+    $(".b-x", bel).addEventListener("pointerdown", e => e.stopPropagation());
+    $(".b-x", bel).addEventListener("click", e => { e.stopPropagation(); removeBlock(d.id, u); renderAll(); });
+    $(".resize", bel).addEventListener("pointerdown", e => startBlockDrag(e, d.id, u, "resize"));
+    bel.addEventListener("pointerdown", e => startBlockDrag(e, d.id, u, "move"));
+  });
+  if($("#clearDay")) $("#clearDay").addEventListener("click", () => {
+    state.schedule[d.id] = []; save(); renderAll();
+  });
+}
+
+/* ============================================================
+   RENDER — list
+   ============================================================ */
+function renderList(){
+  const host = $("#list"); host.innerHTML = "";
+  const q = state.ui.search.trim().toLowerCase();
+  const byGroup = state.ui.group;
+  const groups = byGroup === "zone" ? ZONES : CATS;
+  const groupOrder = byGroup === "zone" ? ZONE_ORDER : CAT_ORDER;
+  const keyOf = p => byGroup === "zone" ? p.zone : p.cat;
+
+  let ids = state.order.filter(id => {
+    const p = state.places[id]; if(!p) return false;
+    if(!q) return true;
+    return (p.name + " " + (ZONES[p.zone]||"") + " " + (CATS[p.cat]||{}).label + " " + (p.note||"")).toLowerCase().includes(q);
+  });
+
+  const buckets = {};
+  ids.forEach(id => { const k = keyOf(state.places[id]); (buckets[k] = buckets[k]||[]).push(id); });
+
+  const orderedKeys = groupOrder.filter(k => buckets[k]);
+  if(!orderedKeys.length){ host.innerHTML = `<div class="empty-list">No places match “${q}”.</div>`; return; }
+
+  orderedKeys.forEach(k => {
+    const head = document.createElement("div");
+    head.className = "group-head";
+    const color = byGroup === "zone" ? "#5B5B6B" : catColor(k);
+    const label = byGroup === "zone" ? (ZONES[k] || k) : ((CATS[k]||{}).label || k);
+    head.innerHTML = `<span class="gc" style="background:${color}"></span><h4>${label}</h4><span class="cnt mono">${buckets[k].length}</span>`;
+    host.appendChild(head);
+
+    buckets[k].forEach(id => {
+      const p = state.places[id];
+      const sched = placeScheduledAnywhere(id);
+      const card = document.createElement("div");
+      card.className = "card" + (sched ? " scheduled":"");
+      card.dataset.place = id;
+      const metaBits = [ZONES[p.zone] || "—", p.dur ? `<span class="dur">${fmtDur(p.dur)}</span>` : ""].filter(Boolean).join(" · ");
+      card.innerHTML = `
+        <span class="c-av">${avatarHTML(p, 38)}</span>
+        <div class="c-main">
+          <div class="c-name">${p.name}</div>
+          <div class="c-meta">${metaBits}</div>
+        </div>
+        <div class="c-acts">
+          <button class="icbtn info" title="Details">ℹ</button>
+          <button class="icbtn add" title="Add to ${activeDayLabel()}">＋</button>
+        </div>`;
+      // drag from avatar/body, but not from action buttons
+      card.addEventListener("pointerdown", e => {
+        if(e.target.closest(".c-acts")) return;
+        startCardDrag(e, id, card);
+      });
+      $(".info", card).addEventListener("click", e => { e.stopPropagation(); openDetail(id); });
+      $(".add", card).addEventListener("click", e => {
+        e.stopPropagation();
+        addBlock(state.ui.activeDay, id, null);
+        renderAll();
+        toast(`Added ${p.name} to ${activeDayLabel()}`);
+      });
+      host.appendChild(card);
+    });
+  });
+}
+const activeDayLabel = () => { const d = DAYS.find(x=>x.id===state.ui.activeDay); return d ? `${d.dow} ${d.date}` : "the day"; };
+
+/* ============================================================
+   MAP (Leaflet, CARTO dark) — numbered by visit order
+   ============================================================ */
+let map, markerLayer, routeLayer, focusMarker;
+function initMap(){
+  map = L.map("map", { zoomControl:true, attributionControl:true }).setView(CONFIG.mapCenter, CONFIG.mapZoom);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:"abcd", maxZoom:20,
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  routeLayer = L.layerGroup().addTo(map);
+}
+function pinIcon(label, color, home){
+  return L.divIcon({
+    className:"bcn-pin",
+    html:`<div class="badge${home?" home":""}" style="background:${color}"><span>${label}</span></div>`,
+    iconSize:[30,30], iconAnchor:[6,28], popupAnchor:[8,-26],
+  });
+}
+function popupHTML(p, n){
+  return `<b>${p.name}</b><br>
+    <span style="color:var(--ink-2);font-size:12px">${n?("Stop "+n+" · "):""}${(CATS[p.cat]||{}).label} · ${ZONES[p.zone]||""}</span><br>
+    <a class="gmaps-link" style="margin-top:6px" href="${gmapsUrl(p)}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`;
+}
+function renderMap(){
+  if(!map) return;
+  markerLayer.clearLayers(); routeLayer.clearLayers();
+  if(focusMarker){ map.removeLayer(focusMarker); focusMarker=null; }
+
+  // always show the hotel as home base
+  const hotel = state.places.hotel;
+  const pts = [];
+  if(hotel){ L.marker([hotel.lat,hotel.lng], { icon:pinIcon("⌂", catColor("lodging"), true) }).bindPopup(popupHTML(hotel)).addTo(markerLayer); }
+
+  const blocks = [...dayBlocks(state.ui.activeDay)].sort((a,b)=>a.start-b.start)
+                   .filter(b => state.places[b.placeId] && state.places[b.placeId].id !== "hotel");
+  const latlngs = [];
+  blocks.forEach((b, i) => {
+    const p = state.places[b.placeId];
+    const ll = [p.lat, p.lng]; latlngs.push(ll); pts.push(ll);
+    L.marker(ll, { icon:pinIcon(i+1, catColor(p.cat)) }).bindPopup(popupHTML(p, i+1)).addTo(markerLayer);
+  });
+  if(latlngs.length > 1){
+    L.polyline(latlngs, { color:"var(--gold)", weight:2.5, opacity:.8, dashArray:"2 8", lineCap:"round" }).addTo(routeLayer);
+  }
+  if(hotel) pts.push([hotel.lat,hotel.lng]);
+  if(pts.length){ map.fitBounds(L.latLngBounds(pts).pad(0.25), { maxZoom:15, animate:true }); }
+
+  const dd = DAYS.find(x=>x.id===state.ui.activeDay);
+  $("#mapLegend").innerHTML = blocks.length
+    ? `<span class="pin">1</span> Numbered in visit order for <b style="color:var(--ink);margin:0 3px">${dd.dow} ${dd.date}</b>. Reorder by moving stops in the timeline.`
+    : `<span class="pin">⌂</span> Julia's hotel. Add stops to <b style="color:var(--ink);margin:0 3px">${dd.dow} ${dd.date}</b> to see the route.`;
+}
+function focusPlace(id){
+  const p = state.places[id]; if(!p || !map) return;
+  if(focusMarker) map.removeLayer(focusMarker);
+  focusMarker = L.marker([p.lat,p.lng], { icon:pinIcon("◎", "#fff") }).addTo(map).bindPopup(popupHTML(p)).openPopup();
+  map.flyTo([p.lat,p.lng], 16, { duration:.6 });
+}
+
+/* ============================================================
+   DRAG — list card -> day / grid  (pointer based, touch-ok)
+   ============================================================ */
+function startCardDrag(e, placeId, card){
+  if(e.button && e.button !== 0) return;
+  const startX = e.clientX, startY = e.clientY;
+  let ghost = null, dragging = false, lastTarget = null;
+  const p = state.places[placeId];
+
+  function clearTarget(){
+    if(lastTarget){ lastTarget.classList.remove("drop-on"); lastTarget = null; }
+  }
+  function move(ev){
+    const dx = ev.clientX-startX, dy = ev.clientY-startY;
+    if(!dragging && Math.hypot(dx,dy) < 7) return;
+    if(!dragging){
+      dragging = true;
+      ghost = card.cloneNode(true);
+      ghost.classList.add("ghost");
+      $(".c-acts", ghost)?.remove();
+      document.body.appendChild(ghost);
+      try{ card.setPointerCapture(ev.pointerId); }catch(_){}
+    }
+    ghost.style.left = (ev.clientX-30)+"px";
+    ghost.style.top  = (ev.clientY-22)+"px";
+
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const grid = under && under.closest("[data-grid-day]");
+    const day  = under && under.closest("[data-drop-day]");
+    clearTarget();
+    if(grid){ grid.classList.add("drop-on"); lastTarget = grid; }
+    else if(day){ day.classList.add("drop-on"); lastTarget = day; }
+  }
+  function up(ev){
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    if(!dragging){ return; } // a tap — ignore (info/＋ buttons handle taps)
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const grid = under && under.closest("[data-grid-day]");
+    const day  = under && under.closest("[data-drop-day]");
+    if(grid){
+      const rect = grid.getBoundingClientRect();
+      const x = ev.clientX - rect.left + grid.scrollLeft;
+      const slot = clamp(Math.round(x/SLOT_PX), 0, SLOTS-1);
+      addBlock(grid.dataset.gridDay, placeId, slot);
+      toast(`Added ${p.name}`);
+    } else if(day){
+      addBlock(day.dataset.dropDay, placeId, null);
+      state.ui.activeDay = day.dataset.dropDay;
+      toast(`Added ${p.name} to ${activeDayLabel()}`);
+    }
+    clearTarget();
+    if(ghost) ghost.remove();
+    if(grid || day) renderAll();
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+/* ============================================================
+   DRAG — move / resize a scheduled block
+   ============================================================ */
+function startBlockDrag(e, dayId, blockUid, mode){
+  if(e.button && e.button !== 0) return;
+  e.stopPropagation();
+  const bel = e.currentTarget.closest(".block") || e.target.closest(".block");
+  const block = dayBlocks(dayId).find(b => b.uid === blockUid); if(!block || !bel) return;
+  const startX = e.clientX;
+  const origStart = block.start, origSpan = block.span;
+  let moved = false;
+  bel.classList.add("dragging");
+  try{ bel.setPointerCapture(e.pointerId); }catch(_){}
+
+  function move(ev){
+    const dx = ev.clientX - startX;
+    if(Math.abs(dx) > 4) moved = true;
+    if(mode === "move"){
+      let ns = clamp(origStart + Math.round(dx/SLOT_PX), 0, SLOTS - block.span);
+      bel.style.left = (ns*SLOT_PX) + "px";
+      block._preview = ns;
+      const tEl = $(".b-time", bel);
+      if(tEl) tEl.textContent = fmtTime(slotToMin(ns)) + "–" + fmtTime(slotToMin(ns+block.span));
+    } else {
+      let nspan = clamp(origSpan + Math.round(dx/SLOT_PX), 1, SLOTS - block.start);
+      bel.style.width = (nspan*SLOT_PX) + "px";
+      block._previewSpan = nspan;
+      const tEl = $(".b-time", bel);
+      if(tEl) tEl.textContent = fmtTime(slotToMin(block.start)) + "–" + fmtTime(slotToMin(block.start+nspan));
+    }
+  }
+  function up(ev){
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    bel.classList.remove("dragging");
+    if(mode === "move" && block._preview != null) block.start = block._preview;
+    if(mode === "resize" && block._previewSpan != null) block.span = block._previewSpan;
+    delete block._preview; delete block._previewSpan;
+    if(!moved && mode === "move"){ openDetail(block.placeId); return; } // click = details
+    save(); renderAll();
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+/* ============================================================
+   MODAL — place details / edit
+   ============================================================ */
+function openDetail(id){
+  const p = state.places[id]; if(!p) return;
+  const c = catColor(p.cat);
+  const m = $("#modal");
+  const media = p.video
+    ? `<div class="video"><button type="button" class="video-facade" data-vid="${p.video}" aria-label="Play video"><img src="https://i.ytimg.com/vi/${p.video}/hqdefault.jpg" alt="" loading="lazy"><span class="vplay">▶</span></button></div>`
+    : (p.image
+      ? `<div class="m-photo"><img src="${p.image.replace(/"/g,"&quot;")}" alt="${(p.name||"").replace(/"/g,"&quot;")}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.m-photo').remove()"></div>`
+      : "");
+  m.innerHTML = `
+    <div class="m-hero" style="background:linear-gradient(120deg, color-mix(in srgb,${c}, #000 55%), color-mix(in srgb,${c}, #000 80%))">
+      ${avatarHTML(p, 52)}
+      <button class="m-close" id="mClose">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-cat" style="color:${c}">${(CATS[p.cat]||{}).label}</div>
+      <h3>${p.name}</h3>
+      <div class="m-zone">${ZONES[p.zone]||""} · default <span class="mono">${fmtDur(p.dur)}</span></div>
+      ${p.note ? `<p class="m-note">${p.note}</p>`:""}
+      ${media}
+      <a class="gmaps-link" href="${gmapsUrl(p)}" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+
+      <div class="field"><label>Photo URL — overrides the default; clear it to use the emoji</label>
+        <input id="fImg" type="url" placeholder="https://…" value="${p.image||""}"></div>
+      <div class="field"><label>Notes</label>
+        <textarea id="fNote" rows="2">${(p.note||"").replace(/</g,"&lt;")}</textarea></div>
+      <div class="field"><label>Default time</label>
+        <select id="fDur">
+          ${[15,30,45,60,75,90,120,150,180,240,360].map(v=>`<option value="${v}" ${v===p.dur?"selected":""}>${fmtDur(v)}</option>`).join("")}
+        </select></div>
+
+      <div class="m-actions">
+        <button class="btn primary" id="mSave">Save</button>
+        <button class="btn" id="mFocus">Show on map</button>
+      </div>
+    </div>`;
+  $("#scrim").classList.add("on");
+  const vf = $(".video-facade", m);
+  if(vf){
+    vf.addEventListener("click", () => {
+      const vid = vf.dataset.vid;
+      // YouTube refuses to embed from a null (file://) origin and throws error 153,
+      // so open it on youtube.com directly; play inline only when properly hosted.
+      if(location.protocol === "file:"){
+        window.open("https://www.youtube.com/watch?v=" + vid, "_blank", "noopener");
+      } else {
+        const wrap = vf.closest(".video");
+        wrap.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0" title="${p.name.replace(/"/g,"&quot;")}" allow="autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>`;
+      }
+    });
+  }
+  $("#mClose").addEventListener("click", closeModal);
+  $("#mFocus").addEventListener("click", () => { closeModal(); focusPlace(id); });
+  $("#mSave").addEventListener("click", () => {
+    const ov = {
+      image: $("#fImg").value.trim() || undefined,
+      note:  $("#fNote").value.trim(),
+      dur:   parseInt($("#fDur").value,10) || p.dur,
+    };
+    state._edits[id] = { ...(state._edits[id]||{}), ...ov };
+    buildPlaces(); save(); closeModal(); renderAll();
+    toast("Saved");
+  });
+}
+function closeModal(){ $("#scrim").classList.remove("on"); }
+
+/* ADD a custom place */
+function openAdd(){
+  const m = $("#modal");
+  m.innerHTML = `
+    <div class="m-hero" style="background:linear-gradient(120deg,#26263200,#1b1b24)">
+      <button class="m-close" id="mClose">✕</button>
+    </div>
+    <div class="m-body">
+      <h3 style="margin-top:0">Add a place</h3>
+      <div class="field"><label>Name</label><input id="aName" placeholder="e.g. Bunkers del Carmel"></div>
+      <div class="field"><label>Category</label>
+        <select id="aCat">${CAT_ORDER.map(k=>`<option value="${k}">${CATS[k].label}</option>`).join("")}</select></div>
+      <div class="field"><label>Area</label>
+        <select id="aZone">${ZONE_ORDER.map(k=>`<option value="${k}">${ZONES[k]}</option>`).join("")}</select></div>
+      <div class="field"><label>Coordinates &nbsp;<span style="color:var(--ink-3);font-weight:400">lat, lng — copy from Google Maps</span></label>
+        <input id="aLL" placeholder="41.4145, 2.1527"></div>
+      <div class="field"><label>Default time</label>
+        <select id="aDur">${[15,30,45,60,90,120,180,240].map(v=>`<option value="${v}" ${v===60?"selected":""}>${fmtDur(v)}</option>`).join("")}</select></div>
+      <div class="field"><label>Notes (optional)</label><textarea id="aNote" rows="2"></textarea></div>
+      <div class="m-actions"><button class="btn primary" id="aSave">Add place</button></div>
+    </div>`;
+  $("#scrim").classList.add("on");
+  $("#mClose").addEventListener("click", closeModal);
+  $("#aSave").addEventListener("click", () => {
+    const name = $("#aName").value.trim();
+    if(!name){ toast("Give it a name first"); return; }
+    const ll = $("#aLL").value.split(",").map(s=>parseFloat(s.trim()));
+    const id = "u" + Date.now().toString(36);
+    const p = {
+      id, name, cat:$("#aCat").value, zone:$("#aZone").value,
+      lat: isFinite(ll[0])?ll[0]:CONFIG.mapCenter[0], lng: isFinite(ll[1])?ll[1]:CONFIG.mapCenter[1],
+      dur: parseInt($("#aDur").value,10), emoji:"📍", note:$("#aNote").value.trim(),
+    };
+    state._custom.push(p); state.order.push(id);
+    buildPlaces(); save(); closeModal(); renderAll();
+    toast(`Added ${name}`);
+  });
+}
+
+/* ============================================================
+   EXPORT / IMPORT / RESET
+   ============================================================ */
+function exportTrip(){
+  const data = JSON.stringify({ schedule:state.schedule, ui:state.ui, edits:state._edits, custom:state._custom, order:state.order }, null, 2);
+  const blob = new Blob([data], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "julia-barcelona-trip.json";
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("Exported trip.json");
+}
+function importTrip(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const s = JSON.parse(reader.result);
+      state.schedule = s.schedule || {}; state.ui = { ...state.ui, ...(s.ui||{}) };
+      state._edits = s.edits || {}; state._custom = s.custom || []; state.order = s.order || [];
+      DAYS.forEach(d => { if(!state.schedule[d.id]) state.schedule[d.id]=[]; });
+      buildPlaces(); save(); renderAll(); toast("Trip imported");
+    }catch(e){ toast("That file didn't look like a trip export."); }
+  };
+  reader.readAsText(file);
+}
+function resetTrip(){
+  state.schedule = {}; state._edits = {}; state._custom = []; state.order = [];
+  DAYS.forEach(d => state.schedule[d.id]=[]);
+  state.ui = { activeDay:DAYS[0].id, group:"category", search:"" };
+  localStorage.removeItem(CONFIG.storageKey);
+  buildPlaces(); save(); renderAll(); toast("Reset to a blank trip");
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastT;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(()=> t.classList.remove("on"), 2200);
+}
+
+/* ============================================================
+   WIRE UP + BOOT
+   ============================================================ */
+function renderAll(){ renderRibbon(); renderDayPanel(); renderList(); renderMap(); }
+
+function wire(){
+  $("#search").addEventListener("input", e => { state.ui.search = e.target.value; renderList(); });
+  $("#groupSeg").addEventListener("click", e => {
+    const b = e.target.closest("button[data-group]"); if(!b) return;
+    state.ui.group = b.dataset.group; save();
+    $$("#groupSeg button").forEach(x => x.classList.toggle("on", x===b));
+    renderList();
+  });
+  $("#btnAdd").addEventListener("click", openAdd);
+  $("#btnExport").addEventListener("click", exportTrip);
+  $("#btnImport").addEventListener("click", () => $("#importFile").click());
+  $("#importFile").addEventListener("change", e => { if(e.target.files[0]) importTrip(e.target.files[0]); e.target.value=""; });
+  $("#btnReset").addEventListener("click", () => {
+    if(confirm("Clear the whole plan and start over? This can't be undone.")) resetTrip();
+  });
+  $("#scrim").addEventListener("click", e => { if(e.target.id==="scrim") closeModal(); });
+  document.addEventListener("keydown", e => { if(e.key==="Escape") closeModal(); });
+  // let list cards' info button focus the place on the map too (handled in card)
+  $("#list").addEventListener("click", e => {
+    const card = e.target.closest(".card");
+    if(card && !e.target.closest(".c-acts")) { /* body tap handled by drag-up; nothing here */ }
+  });
+}
+
+load();
+initMap();
+$$("#groupSeg button").forEach(b => b.classList.toggle("on", b.dataset.group === state.ui.group));
+$("#search").value = state.ui.search || "";
+wire();
+renderAll();
+</script>
+</body>
+</html>

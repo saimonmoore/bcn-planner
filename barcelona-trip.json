@@ -1,0 +1,313 @@
+{
+  "schedule": {
+    "d1": [],
+    "d2": [],
+    "d3": [],
+    "d4": [],
+    "d5": []
+  },
+  "ui": {
+    "activeDay": "d1",
+    "group": "category",
+    "search": ""
+  },
+  "edits": {
+    "portolimpic": {
+      "image": "https://media.gettyimages.com/id/521736862/photo/jogging-along-the-waterfront-in-port-olimpic-barcelona.jpg",
+      "note": "Flat seafront run past Bogatell & Mar Bella.",
+      "dur": 60
+    },
+    "sagrada": {
+      "image": "https://d1bvpoagx8hqbg.cloudfront.net/originals/the-sagrada-familia-296888a4388f39b06730f7ea880af9e0.jpg",
+      "note": "Book a timed slot ahead. Saimon's view tip: Cafè Sacrotel (Rosselló) or the Lamaro hotel terrace.",
+      "dur": 120
+    },
+    "batllo": {
+      "image": "https://aws-tiqets-cdn.imgix.net/images/content/acdbf78f95cf4dd18a12f3e7b156f695.jpg?auto=format&fit=crop&ixlib=python-3.2.1&q=70&s=20bedd9ffba9f36e9c906aae3b5c4d67",
+      "note": "Gaudí's dragon façade on Passeig de Gràcia. Open late.",
+      "dur": 90
+    },
+    "pedrera": {
+      "image": "https://img.magnific.com/premium-photo/modernist-house-casa-mila-called-la-pedrera-designed-by-antoni-gaudi_137441-5147.jpg?w=2000",
+      "note": "Wavy stone + warrior-chimney rooftop. Two minutes from Julia's hotel.",
+      "dur": 90
+    },
+    "palau": {
+      "image": "https://cdn.finestresullarte.info/rivista/immagini/2024/2828/palau-musica-catalana-facciata.jpg",
+      "note": "UNESCO concert hall — guided tours, or catch an evening concert.",
+      "dur": 75
+    },
+    "santpau": {
+      "image": "https://nanani.world/wp-content/uploads/sites/10/2020/10/S__54370329.jpg",
+      "note": "Doménech i Montaner's pavilion city — ~10 min walk up from Sagrada.",
+      "dur": 90
+    },
+    "guell": {
+      "image": "https://veebrant.com/wp-content/uploads/2013/02/gaudi-guell-park2.jpg",
+      "note": "Book the timed monumental-zone entry. The free park areas have great views.",
+      "dur": 120
+    },
+    "vicens": {
+      "image": "https://cdn2.civitatis.com/espana/barcelona/galeria/big/exterior-casa-vicens-entrada.jpg",
+      "note": "Gaudí's playful, tile-clad first house. Quieter than the others.",
+      "dur": 60
+    },
+    "punxes": {
+      "image": "https://thumbs.dreamstime.com/b/casa-de-les-punxes-casa-terradas-designed-modernista-architect-josep-puig-i-cadafalch-barcelona-barcelona-spain-feb-256979362.jpg",
+      "note": "Fairytale six-spired castle (Casa Terrades). Mostly admired from outside now.",
+      "dur": 30
+    },
+    "temple": {
+      "image": "https://irbarcelona.com/wp-content/uploads/2013/06/palacio-columnasaugusto.jpg",
+      "note": "Roman columns hidden inside a Gothic courtyard. Free.",
+      "dur": 15
+    },
+    "pont": {
+      "image": "https://www.gratisbarcelona.com/assets/images/pont-del-bisbe003.jpg",
+      "note": "The lovers' arch. Go early — it's a photo magnet.",
+      "dur": 15
+    },
+    "ardiaca": {
+      "image": "https://irbarcelona.com/wp-content/uploads/2013/02/patio-casaardiaca.jpg",
+      "note": "Quiet courtyard + rooftop view behind the cathedral. Free.",
+      "dur": 15
+    },
+    "besada": {
+      "image": "https://media.timeout.com/images/101688391/750/422/image.jpg",
+      "note": "The 'kiss' photo-mosaic. Best very early before the crowd.",
+      "dur": 15
+    },
+    "mar": {
+      "image": "https://www.jigsawexplorer.com/puzzles/subjects/santa-maria-del-mar.jpg",
+      "note": "Pure, soaring Catalan Gothic in the heart of El Born.",
+      "dur": 30
+    },
+    "pi": {
+      "image": "https://blog.costabrava-pals.com/wp-content/uploads/2014/02/Santa-maria-de-pi-2.jpg",
+      "note": "Plaça del Pi — xocolata amb xurros and a weekend artisan market.",
+      "dur": 30
+    },
+    "picasso": {
+      "image": "https://www.ratgeber-wissen.com/wp-content/uploads/2024/02/Picasso-Museum-Barcelona.jpg",
+      "note": "His early years, chronologically. Closed Mondays — bag-check queue can be slow.",
+      "dur": 120
+    },
+    "campnou": {
+      "image": "https://www.visitcampnou.com/wp-content/uploads/camp-nou-stadium-barcelona-1743999096.jpg",
+      "note": "Football fans only. Stadium is mid-renovation — check what's open.",
+      "dur": 150
+    },
+    "aquarium": {
+      "image": "https://salirporbarcelona.com/wp-content/uploads/2022/06/Un-mar-de-acividades-en-el-LAquarium-de-Barcelona.jpg",
+      "note": "Animal fans — the shark tunnel is the highlight. Down at Port Vell.",
+      "dur": 120
+    },
+    "cosmocaixa": {
+      "image": "https://www.sagrada-familia-barcelona.com/wp-content/uploads/2024/11/2024010815363437680.jpg",
+      "note": "Saimon's favourite. A flooded rainforest indoors — easily half a day.",
+      "dur": 180
+    },
+    "miro": {
+      "image": "https://inplacescityguide.com/wp-content/uploads/2023/08/fundacio-joan-miro-barcelona-inplaces-12.jpg",
+      "note": "Bright Sert building on Montjuïc with city views. Closed Mondays.",
+      "dur": 120
+    },
+    "ciutadella": {
+      "image": "https://images.musement.com/cover/0002/85/ciutadella-park_header-184615.jpeg",
+      "note": "Rowing lake, the cascade fountain, and resident green parrots.",
+      "dur": 90
+    },
+    "arc": {
+      "image": "https://www.shbarcelona.com/blog/en/wp-content/uploads/2016/05/spain-1276209_1920.jpg",
+      "note": "Red-brick arch + palm promenade leading into Ciutadella.",
+      "dur": 15
+    },
+    "laberint": {
+      "image": "https://img.magnific.com/fotos-premium/entrada-al-famoso-laberinto-parque-laberinto-horta-parc-laberint-d-horta-barcelona-espana_328295-931.jpg",
+      "note": "Romantic neoclassical garden with a real hedge maze. Small entry fee.",
+      "dur": 90
+    },
+    "grec": {
+      "image": "https://cdn.sanity.io/images/9iye3zhv/production/5249cbd1a04e3c180c83580472eff5bc6e872a06-2676x1784.jpg?w=1600",
+      "note": "Quiet open-air theatre + gardens on Montjuïc. Free.",
+      "dur": 30
+    },
+    "fountain": {
+      "image": "https://disabledaccessibletravel.com/wp-content/uploads/Magic-Fountain-Barcelona-Hero.jpg",
+      "note": "Light, water & music show below the Palau. Thu–Sun, ~21:00–22:00 in summer.",
+      "dur": 60
+    },
+    "poble": {
+      "image": "https://cdn-imgix.headout.com/media/images/049b2c53736d2d8ccdd162d3893a8b97-17255-barcelona-poble-espanyol-10.jpg",
+      "note": "A village of Spain's architecture — shops, workshops, sometimes concerts.",
+      "dur": 120
+    },
+    "boqueria": {
+      "image": "https://suitelife.com/wp-content/uploads/2015/12/fresh-aquasummit.jpg",
+      "note": "Iconic but very touristy, and now partly ticketed. Closed Sundays.",
+      "dur": 45
+    },
+    "santantoni": {
+      "image": "https://www.barcelona-life.com/wp-content/uploads/2018/02/santa-caterina.jpg",
+      "note": "The local's market. Sunday morning book-and-coin market outside. Hall closed Sun.",
+      "dur": 45
+    },
+    "santacaterina": {
+      "image": "https://www.locabarcelona.com/wp-content/uploads/2019/03/1507628225-5275297.jpeg",
+      "note": "Wavy rainbow roof, calmer than Boqueria. Closed Sundays.",
+      "dur": 30
+    },
+    "bosc": {
+      "image": "https://thirdeyetraveller.com/wp-content/uploads/El-Bosc-De-Les-Fades-Barcelona-Fairy-Bar-26-1400x1050.jpg",
+      "note": "A fairytale forest bar tucked just off La Rambla.",
+      "dur": 60
+    },
+    "xampanyet": {
+      "image": "https://production-data.worldofmouth.app/images/0d0e0c4b-bf3e-4362-a457-efcc283e67ee-1080x1080.jpg",
+      "note": "House cava + classic tapas at the counter. Queue early; closed Sun.",
+      "dur": 75
+    },
+    "antic": {
+      "image": "https://unbuendiaenbarcelona.com/wp-content/uploads/2015/08/9terrazaweb.jpg",
+      "note": "Hidden leafy courtyard bar behind the Palau. Service is slow, the tree is worth it.",
+      "dur": 60
+    },
+    "paradiso": {
+      "image": "https://feastio.com/wp-content/uploads/2019/03/Paradiso-entrance.jpg",
+      "note": "Speakeasy behind a pastrami fridge — on the World's-50-Best list. Expect a queue.",
+      "dur": 90
+    },
+    "cocovail": {
+      "image": "https://www.beersandtrips.com/wp-content/uploads/2021/05/coco_vail_cerveza_artesana.jpg",
+      "note": "Craft beer + wings, relaxed and roomy.",
+      "dur": 90
+    },
+    "kaelder": {
+      "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiDDIBZxMqt2dmvbSSqZbdnsBPNHvVYDlP_T0GebOGLtV0O2kskOzliQQyVzqrQryh6_5IgCfA9CRl2b-2_GDeijP-loUgbTXYQvgxQXBx2viISWVKCJUro07Btua7Hcx4fk10PTxIjXbd4/s1600/Kaelderkold1.JPG",
+      "note": "17 taps of their own craft beer, near Santa Maria del Pi.",
+      "dur": 60
+    },
+    "exotica": {
+      "image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/30/1c/b3/1c/caption.jpg?w=1100&h=1100&s=1",
+      "note": "Brunch in a jungle. Open 9–16h daily; the queue builds from noon.",
+      "dur": 90
+    },
+    "berry": {
+      "image": "https://splendidlyspain.com/wp-content/uploads/2025/07/Berry-Brunch-Barcelona-2.jpg",
+      "note": "Saimon's pick. Pin is approximate — drop the exact spot in via Edit.",
+      "dur": 75
+    },
+    "cascantic": {
+      "image": "https://foundtheworld.com/wp-content/uploads/2014/06/barrio-gotico-neighbourhood-in-barcelona-spain.jpg",
+      "note": "Aimless roaming through medieval lanes — bars everywhere.",
+      "dur": 90
+    },
+    "born": {
+      "image": "https://www.barcelonaebiketours.com/wp-content/uploads/sites/11/2018/06/El-Born-Barcelona.jpg",
+      "note": "Boutiques, wine bars, and Santa Maria del Mar at its heart.",
+      "dur": 90
+    },
+    "raval": {
+      "image": "https://d36tnp772eyphs.cloudfront.net/blogs/1/2018/06/Sculpture-of-cat-in-in-the-El-Raval-district-of-Barcelona-Spain.jpg",
+      "note": "Grittier, arty, multicultural. Great street food and dive bars.",
+      "dur": 90
+    },
+    "gracia": {
+      "image": "https://www.barcelonaglobal.org/blog/wp-content/uploads/2021/10/gracia.png",
+      "note": "Village-like squares, indie shops, terraces. Lovely at dusk.",
+      "dur": 90
+    },
+    "sants": {
+      "image": "https://quedeque.barcelona/sites/default/files/activity/images/IMG_5906-scaledSANTS.jpg",
+      "note": "Workaday, un-touristy neighbourhood around the big station.",
+      "dur": 60
+    },
+    "montjuicamble": {
+      "image": "https://ticketshop.barcelona/images/montjuic.jpg",
+      "note": "Gardens, viewpoints and museums — pair with the cable car.",
+      "dur": 120
+    },
+    "bogatell": {
+      "image": "https://live.staticflickr.com/65535/48009402371_358b207d35_b.jpg",
+      "note": "Easy evening swim — cleaner and calmer than Barceloneta.",
+      "dur": 120
+    },
+    "marbella": {
+      "image": "https://a.cdn-hotels.com/gdcs/production167/d336/67c94e2d-0e6c-4beb-a5d4-9d1bb24f8795.jpg",
+      "note": "Relaxed beach; has nudist and LGBT+ sections and two chiringuitos.",
+      "dur": 120
+    },
+    "aigues": {
+      "image": "https://thebarcelonafeeling.com/wp-content/uploads/2020/09/Barcelona-Private-Tours-1-1080x675.jpeg",
+      "note": "Flat ~10 km trail above the city. Run or cycle it for sunset.",
+      "dur": 90
+    },
+    "pratcycle": {
+      "image": "https://muchamasia.com/wp-content/uploads/2019/05/el-maravillas1.jpg",
+      "note": "Longer ride: Cornellà → El Prat → beach bar. Evening swim + drink. Pin approximate.",
+      "dur": 180
+    },
+    "sitges": {
+      "image": "https://media.cntraveller.in/wp-content/uploads/2016/07/sitges.jpg",
+      "note": "~40 min by train or car. Whitewashed old town + beaches.",
+      "dur": 360
+    },
+    "hotel": {
+      "image": "https://phgcdn.com/images/uploads/BCNOE/corporatemasthead/ohla_overview.jpg",
+      "note": "Julia's hotel — near La Pedrera, rooftop pool.",
+      "dur": 15
+    }
+  },
+  "custom": [],
+  "order": [
+    "sagrada",
+    "batllo",
+    "pedrera",
+    "palau",
+    "santpau",
+    "guell",
+    "vicens",
+    "punxes",
+    "ciutadella",
+    "arc",
+    "laberint",
+    "grec",
+    "picasso",
+    "campnou",
+    "aquarium",
+    "cosmocaixa",
+    "miro",
+    "exotica",
+    "berry",
+    "boqueria",
+    "santantoni",
+    "santacaterina",
+    "cascantic",
+    "born",
+    "raval",
+    "gracia",
+    "sants",
+    "montjuicamble",
+    "fountain",
+    "poble",
+    "bosc",
+    "xampanyet",
+    "antic",
+    "paradiso",
+    "cocovail",
+    "kaelder",
+    "temple",
+    "pont",
+    "ardiaca",
+    "besada",
+    "mar",
+    "pi",
+    "portolimpic",
+    "bogatell",
+    "marbella",
+    "aigues",
+    "pratcycle",
+    "sitges",
+    "hotel"
+  ]
+}
