@@ -1043,9 +1043,9 @@ function openDetail(id){
         <input id="fImg" type="url" placeholder="https://…" value="${p.image||""}"></div>
       <div class="field"><label>Notes</label>
         <textarea id="fNote" rows="2">${(p.note||"").replace(/</g,"&lt;")}</textarea></div>
-      <div class="field"><label>Default time</label>
+      <div class="field"><label>Duration <span style="opacity:.6">— also updates this activity on the schedule</span></label>
         <select id="fDur">
-          ${[15,30,45,60,75,90,120,150,180,240,360].map(v=>`<option value="${v}" ${v===p.dur?"selected":""}>${fmtDur(v)}</option>`).join("")}
+          ${[...new Set([15,30,45,60,75,90,120,150,180,240,360, p.dur])].sort((a,b)=>a-b).map(v=>`<option value="${v}" ${v===p.dur?"selected":""}>${fmtDur(v)}</option>`).join("")}
         </select></div>
 
       <div class="m-actions">
@@ -1071,12 +1071,21 @@ function openDetail(id){
   $("#mClose").addEventListener("click", closeModal);
   $("#mFocus").addEventListener("click", () => { closeModal(); focusPlace(id); });
   $("#mSave").addEventListener("click", () => {
+    const newDur = parseInt($("#fDur").value,10) || p.dur;
     const ov = {
       image: $("#fImg").value.trim() || undefined,
       note:  $("#fNote").value.trim(),
-      dur:   parseInt($("#fDur").value,10) || p.dur,
+      dur:   newDur,
     };
     state._edits[id] = { ...(state._edits[id]||{}), ...ov };
+    // Keep already-scheduled blocks in sync with the new duration. Only when it
+    // actually changed, so a manual drag-resize isn't clobbered by an unrelated save.
+    if(newDur !== p.dur){
+      const span = spanForDur(newDur);
+      DAYS.forEach(d => dayBlocks(d.id).forEach(b => {
+        if(b.placeId === id) b.span = Math.max(1, Math.min(span, SLOTS - b.start));
+      }));
+    }
     buildPlaces(); save(); closeModal(); renderAll();
     toast("Saved");
   });
