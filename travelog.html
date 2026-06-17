@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Julia | Barcelona travel log · 3–9 July 2026</title>
+  <!-- Fonts & simple icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f7f3ee;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      background-image: radial-gradient(circle at 10% 20%, rgba(232, 204, 184, 0.3) 0%, transparent 35%),
+                        radial-gradient(circle at 90% 70%, rgba(210, 170, 140, 0.25) 0%, transparent 40%);
+    }
+
+    /* main card – elegant, soft shadows, Julia-inspired warm palette */
+    .travel-journal {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(255, 251, 247, 0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: #fffbf5;
+      border-radius: 3.5rem;
+      box-shadow: 0 30px 50px rgba(140, 100, 70, 0.15), 0 10px 25px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(255,255,240,0.7);
+      padding: 2.8rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.2rem;
+      transition: all 0.2s ease;
+    }
+
+    /* header with Julia-inspired serif typography */
+    .journal-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #e7d9cc;
+      padding-bottom: 1.2rem;
+    }
+
+    .title-section h1 {
+      font-family: 'Playfair Display', 'Times New Roman', serif;
+      font-weight: 600;
+      font-size: 3.3rem;
+      letter-spacing: -0.5px;
+      color: #4e3b2c;
+      line-height: 1.1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .title-section h1 span {
+      background: #f3e1d2;
+      padding: 0.2rem 1.2rem;
+      border-radius: 60px;
+      font-size: 1.7rem;
+      font-weight: 400;
+      font-style: italic;
+      color: #5e4633;
+    }
+
+    .trip-dates {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: #8b735b;
+      margin-top: 0.4rem;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: transparent;
+      border: 1px solid #cfbcab;
+      padding: 0.7rem 1.5rem;
+      border-radius: 3rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #4e3b2c;
+      background: rgba(255,250,245,0.7);
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.25s;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .btn:hover {
+      background: #f3e5d9;
+      border-color: #b2967c;
+      color: #2e241b;
+      box-shadow: 0 8px 14px rgba(160, 120, 80, 0.12);
+    }
+
+    .btn.primary {
+      background: #d9c0ad;
+      border-color: #b39274;
+      color: #2f2419;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(160, 110, 70, 0.2);
+    }
+
+    .btn.primary:hover {
+      background: #cdad94;
+    }
+
+    /* Add entry area */
+    .entry-form {
+      background: #f9f2ea;
+      border-radius: 2.5rem;
+      padding: 1.8rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      align-items: flex-end;
+      border: 1px solid #eadaca;
+      box-shadow: inset 0 1px 8px rgba(255,255,255,0.8), 0 10px 18px rgba(130, 90, 50, 0.08);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1 1 180px;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #7b6e5e;
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      background: #fffdf9;
+      border: 1px solid #d9ccbd;
+      border-radius: 1.5rem;
+      padding: 0.8rem 1.2rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.2s;
+      resize: vertical;
+      color: #3c3026;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #b39274;
+      box-shadow: 0 0 0 3px rgba(185, 140, 100, 0.2);
+    }
+
+    .entries-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .entry-card {
+      background: #ffffff;
+      border-radius: 2rem;
+      padding: 1.4rem 1.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #ecdfd1;
+      box-shadow: 0 6px 14px rgba(150, 110, 70, 0.06);
+      transition: 0.2s;
+    }
+
+    .entry-card:hover {
+      box-shadow: 0 14px 22px rgba(140, 100, 60, 0.1);
+      border-color: #d6bc9e;
+    }
+
+    .entry-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .entry-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      color: #4d3824;
+    }
+
+    .entry-meta {
+      display: flex;
+      gap: 1.2rem;
+      color: #8e7a65;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .entry-notes {
+      color: #5b4b3a;
+      margin-top: 0.2rem;
+      font-style: italic;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #b7a086;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0.4rem 0.7rem;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .delete-btn:hover {
+      background: #f3e3d4;
+      color: #a1553a;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #b9a58b;
+      font-style: italic;
+      padding: 2rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    hr {
+      border: 0.5px solid #e5d7c6;
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #9b8978;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 650px) {
+      .travel-journal {
+        padding: 1.8rem;
+      }
+      .title-section h1 {
+        font-size: 2.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="travel-journal">
+    <div class="journal-header">
+      <div class="title-section">
+        <h1>
+          Julia <span>Barcelona</span>
+        </h1>
+        <div class="trip-dates">
+          <span>☀️ 3 July – 9 July 2026</span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn" id="exportJsonBtn" title="Export journal as JSON">📦 Export</button>
+        <label class="btn" for="importFile" style="cursor:pointer;">📂 Import</label>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+      </div>
+    </div>
+
+    <!-- Add new memory form -->
+    <div class="entry-form">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="entryDate" value="2026-07-03">
+      </div>
+      <div class="form-group" style="flex:2 1 250px;">
+        <label>Title</label>
+        <input type="text" id="entryTitle" placeholder="Gothic Quarter walk, tapas..." autocomplete="off">
+      </div>
+      <div class="form-group" style="flex:1 1 120px;">
+        <label>Mood</label>
+        <select id="entryMood">
+          <option value="✨ Inspired">✨ Inspired</option>
+          <option value="🍷 Relaxed">🍷 Relaxed</option>
+          <option value="🌞 Sunny">🌞 Sunny</option>
+          <option value="🎨 Artistic">🎨 Artistic</option>
+          <option value="😋 Foodie">😋 Foodie</option>
+          <option value="❤️ Romantic">❤️ Romantic</option>
+          <option value="🧗 Adventurous">🧗 Adventurous</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:2 1 200px;">
+        <label>Notes</label>
+        <input type="text" id="entryNotes" placeholder="little moment...">
+      </div>
+      <button class="btn primary" id="addEntryBtn">+ Add memory</button>
+    </div>
+
+    <!-- Dynamic entries container -->
+    <div id="entriesContainer" class="entries-list">
+      <!-- Rendered via JS -->
+      <div class="empty-message">✨ Your Barcelona story begins here. Add a first memory.</div>
+    </div>
+
+    <hr>
+    <footer>
+      <span>🌿 Julia · handwritten travelogue</span>
+      <span id="storageStatus">💾 indexedDB ready</span>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- IndexedDB setup ----------
+      const DB_NAME = 'JuliaBarcelonaLog';
+      const DB_VERSION = 1;
+      const STORE_NAME = 'entries';
+      let db = null;
+
+      // Entry structure: id, date, title, mood, notes
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+            if (!database.objectStoreNames.contains(STORE_NAME)) {
+              const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+              store.createIndex('date', 'date', { unique: false });
+            }
+          };
+          request.onsuccess = (event) => {
+            db = event.target.result;
+            resolve(db);
+          };
+          request.onerror = (event) => {
+            console.error('IndexedDB error:', event.target.error);
+            reject(event.target.error);
+          };
+        });
+      }
+
+      function getEntries() {
+        return new Promise((resolve, reject) => {
+          if (!db) return reject('DB not initialized');
+          const transaction = db.transaction(STORE_NAME, 'readonly');
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = (e) => reject(e);
+        });
+      }
+
+      function addEntry(entry) {
+        return new Promise((resolve, reject) => {
+          if (!db) return reject('DB not ready');
+          const transaction = db.transaction(STORE_NAME, 'readwrite');
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.add(entry);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (e) => reject(e);
+        });
+      }
+
+      function deleteEntry(id) {
+        return new Promise((resolve, reject) => {
+          if (!db) return reject('DB not ready');
+          const transaction = db.transaction(STORE_NAME, 'readwrite');
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.delete(id);
+          request.onsuccess = () => resolve();
+          request.onerror = (e) => reject(e);
+        });
+      }
+
+      function clearAllEntries() {
+        return new Promise((resolve, reject) => {
+          if (!db) return reject('DB not ready');
+          const transaction = db.transaction(STORE_NAME, 'readwrite');
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.clear();
+          request.onsuccess = () => resolve();
+          request.onerror = (e) => reject(e);
+        });
+      }
+
+      // Bulk add after import (clear then add)
+      async function importEntries(entriesArray) {
+        await clearAllEntries();
+        for (let entry of entriesArray) {
+          // ensure no id field to let autoincrement work, but we keep original id? safer to strip id.
+          const { id, ...cleanEntry } = entry;
+          await addEntry(cleanEntry);
+        }
+      }
+
+      // ---------- Render ----------
+      const entriesContainer = document.getElementById('entriesContainer');
+      const storageStatus = document.getElementById('storageStatus');
+
+      function renderEntries(entries) {
+        if (!entries.length) {
+          entriesContainer.innerHTML = `<div class="empty-message">🌸 No memories yet. Stroll through Barcelona in your mind.</div>`;
+          return;
+        }
+
+        // Sort by date descending (most recent first)
+        const sorted = [...entries].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        
+        entriesContainer.innerHTML = sorted.map(entry => {
+          const dateFormatted = entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+          return `
+            <div class="entry-card" data-id="${entry.id}">
+              <div class="entry-info">
+                <div class="entry-title">${escapeHtml(entry.title) || 'Untitled'}</div>
+                <div class="entry-meta">
+                  <span>📅 ${dateFormatted || '?'}</span>
+                  <span>${escapeHtml(entry.mood) || '✨'}</span>
+                </div>
+                ${entry.notes ? `<div class="entry-notes">“${escapeHtml(entry.notes)}”</div>` : ''}
+              </div>
+              <button class="delete-btn" data-id="${entry.id}" aria-label="Delete entry">🗑️</button>
+            </div>
+          `;
+        }).join('');
+
+        // Attach delete events
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = Number(btn.getAttribute('data-id'));
+            if (isNaN(id)) return;
+            await deleteEntry(id);
+            await refreshView();
+          });
+        });
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      async function refreshView() {
+        try {
+          const entries = await getEntries();
+          renderEntries(entries);
+          storageStatus.textContent = '💾 indexedDB synced';
+        } catch (err) {
+          storageStatus.textContent = '⚠️ storage error';
+          console.error(err);
+        }
+      }
+
+      // ---------- Form handling ----------
+      document.getElementById('addEntryBtn').addEventListener('click', async () => {
+        const dateInput = document.getElementById('entryDate');
+        const titleInput = document.getElementById('entryTitle');
+        const moodSelect = document.getElementById('entryMood');
+        const notesInput = document.getElementById('entryNotes');
+
+        const dateValue = dateInput.value.trim();
+        const titleValue = titleInput.value.trim();
+        if (!dateValue || !titleValue) {
+          alert('Please provide at least a date and a title for your memory.');
+          return;
+        }
+
+        const newEntry = {
+          date: dateValue,
+          title: titleValue,
+          mood: moodSelect.value,
+          notes: notesInput.value.trim()
+        };
+
+        try {
+          await addEntry(newEntry);
+          // Clear form
+          titleInput.value = '';
+          notesInput.value = '';
+          moodSelect.value = '✨ Inspired';
+          // keep date as is (could reset to trip start)
+          await refreshView();
+        } catch (error) {
+          alert('Could not save entry. Please try again.');
+          console.error(error);
+        }
+      });
+
+      // ---------- Export JSON ----------
+      document.getElementById('exportJsonBtn').addEventListener('click', async () => {
+        try {
+          const entries = await getEntries();
+          const jsonStr = JSON.stringify(entries, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `julia-barcelona-${new Date().toISOString().slice(0,10)}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          storageStatus.textContent = '📤 exported!';
+        } catch (err) {
+          alert('Export failed.');
+        }
+      });
+
+      // ---------- Import JSON ----------
+      document.getElementById('importFile').addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        try {
+          const text = await file.text();
+          const imported = JSON.parse(text);
+          if (!Array.isArray(imported)) {
+            throw new Error('JSON must be an array of entries.');
+          }
+          // basic validation
+          for (let entry of imported) {
+            if (!entry.date || !entry.title) {
+              throw new Error('Each entry must have date and title.');
+            }
+          }
+          await importEntries(imported);
+          await refreshView();
+          storageStatus.textContent = '📥 imported successfully';
+          // reset file input
+          event.target.value = '';
+        } catch (err) {
+          alert('Import error: ' + err.message);
+          event.target.value = '';
+        }
+      });
+
+      // Set default date to trip start if empty
+      window.addEventListener('load', () => {
+        const dateField = document.getElementById('entryDate');
+        if (!dateField.value) {
+          dateField.value = '2026-07-03';
+        }
+      });
+
+      // Initialize everything
+      async function init() {
+        try {
+          await openDB();
+          await refreshView();
+          // Pre-populate with a couple of Julia-esque suggestions if completely empty? 
+          // Better leave empty for personal touch, but offer a graceful start.
+          const entries = await getEntries();
+          if (entries.length === 0) {
+            // Add one gentle starter memory (optional, can be removed)
+            const starter = {
+              date: '2026-07-03',
+              title: 'Arrival in Barcelona',
+              mood: '🌞 Sunny',
+              notes: 'Stepped into warm evening light, sangria waiting.'
+            };
+            await addEntry(starter);
+            await refreshView();
+          }
+        } catch (error) {
+          console.error('Initialization failed', error);
+          storageStatus.textContent = '⚠️ offline storage issue';
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
